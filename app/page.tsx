@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function LandingPage() {
@@ -8,6 +9,7 @@ export default async function LandingPage() {
 		<>
 			<h1>Hello!</h1>
 			<h1>{JSON.stringify(data)}</h1>
+			<Button>Shad Button</Button>
 		</>
 	);
 }
