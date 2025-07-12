@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { Geist } from "next/font/google";
 import "./globals.css";
+import localFont from 'next/font/local';
 
 const defaultUrl = process.env.VERCEL_URL
     ? `https://${process.env.VERCEL_URL}`
@@ -13,10 +13,8 @@ export const metadata: Metadata = {
     featured in Persona 5 Royal by Atlus and Sega.`,
 };
 
-const geistSans = Geist({
-    variable: "--font-geist-sans",
-    display: "swap",
-    subsets: ["latin"],
+const p5Font = localFont({
+    src: './p5hatty_(Persona_5_Font).ttf'
 });
 
 export default function RootLayout({
@@ -26,7 +24,7 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en" suppressHydrationWarning>
-            <body className={`${geistSans.className} antialiased p-5`}>
+            <body className={`${p5Font.className} antialiased p-5`}>
                 {children}
             </body>
         </html>
