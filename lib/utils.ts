@@ -14,7 +14,12 @@ function redText(text: string) {
 	return `\x1b[31m${text}\x1b[0m`;
 }
 
-export function logError(status: ErrorStatus, details: string): void {
+function getErrorMessage(e: unknown): string {
+	return e instanceof Error ? e.message : String(e);
+}
+
+export function logError(status: ErrorStatus, error: unknown): void {
+	const details = getErrorMessage(error);
 	console.error(`\n${redText(boldText(status))}`);
 	console.error(`-------------------------`);
 	console.error(`${details}\n`);

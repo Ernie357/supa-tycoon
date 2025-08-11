@@ -1,21 +1,56 @@
 'use server';
 
-import { ClientError, ErrorStatus } from "@/lib/types";
+import { ActionSuccess, ClientError, ClientSuccess, ErrorStatus, StructuredError } from "@/lib/types";
 import { logError } from "@/lib/utils";
-import { sendUserCookies } from "./actionOps";
+import { sendUserCookies, supabaseInsert } from "./actionOps";
 import { cookies } from "next/headers";
+import { createAdminClient } from "./supabase/admin";
 
-export async function createRoom() {
+type ActionState = ActionSuccess | StructuredError;
+
+function generateRandomString(length: number): string {
+    let result = "";
+    let values = "abcdefghijklmnopqrstuvwxyz1234567890";
+    for(let idx = 0; idx < length; idx++) {
+        result += values[Math.floor(Math.random() * values.length)];
+    }
+    return result;
+}
+
+export async function createRoom(_: ActionState): Promise<ActionState> {
+    const generalError: StructuredError = { 
+        success: false, 
+        message: ClientError.RoomCreate 
+    };
     try {
-        const cookieResult = await sendUserCookies();
+        const userId = crypto.randomUUID();
+        const cookieResult = await sendUserCookies("userId", userId);
         if(!cookieResult.success) {
-            return null;
+            return cookieResult;
         }
-
+        const roomCode = generateRandomString(8);
+        const roomInsertResult = await supabaseInsert("rooms", {
+            code: roomCode,
+            is_public: true
+        });
+        if(!roomInsertResult.success) {
+            return generalError;
+        }
+        const playerInsertResult = await supabaseInsert("players", {
+            id: userId,
+            name: "Johnny Tycoon",
+            room_code: roomCode,
+            score: null,
+            rank: null,
+            image_url: "Johnny image_url"
+        });
+        if(!playerInsertResult.success) {
+            return generalError;
+        }
+        return { success: true, message: ClientSuccess.RoomCreate }
     } catch(e) {
-        const error = e as Error;
-        logError(ErrorStatus.RoomCreate, error.message);
-        return { success: false, message: ClientError.RoomCreate }
+        logError(ErrorStatus.RoomCreate, e);
+        return generalError;
     }
 }
 

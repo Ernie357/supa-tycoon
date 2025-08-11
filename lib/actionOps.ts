@@ -1,22 +1,36 @@
+// general error rule: if it 
+
 import { cookies } from "next/headers";
-import { ClientError, ErrorStatus, StructuredError } from "./types";
+import { ActionSuccess, ClientError, ErrorStatus, StructuredError } from "./types";
 import { logError } from "./utils";
+import { createAdminClient } from "./supabase/admin";
 
-type Return = Promise<{ success: true, userId: string } | StructuredError>;
+type Return = Promise<ActionSuccess | StructuredError>;
 
-export async function sendUserCookies(): Return {
+export async function sendUserCookies(cookieKey: string, cookieValue: string): Return {
     try {
-        const userId = crypto.randomUUID();
         const cookieStore = await cookies();
-        cookieStore.set("userId", userId, {
+        cookieStore.set(cookieKey, cookieValue, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production"
         });
-        return { success: true, userId: userId };
+        return { success: true };
     } catch(e) {
-        const error = e as Error;
-        const status = ErrorStatus.Cookie;
-        logError(status, error.message);
-        return { success: false, clientMessage: ClientError.Cookie };
+        logError(ErrorStatus.Cookie, e);
+        return { success: false, message: ClientError.Cookie };
+    }
+}
+
+export async function supabaseInsert<T = any>(tableName: string, data: T): Return {
+    try {
+        const supabase = createAdminClient();
+        const roomResult = await supabase.from(tableName).insert(data);
+        if(roomResult.error) {
+            throw new Error(JSON.stringify(roomResult.error));
+        }
+        return { success: true };
+    } catch(e) {
+        logError(ErrorStatus.PGInsert, e);
+        return { success: false };
     }
 }
