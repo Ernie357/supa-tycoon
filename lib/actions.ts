@@ -4,7 +4,7 @@ import { ActionSuccess, ClientError, ClientSuccess, ErrorStatus, StructuredError
 import { logError } from "@/lib/utils";
 import { sendUserCookies, supabaseInsert } from "./actionOps";
 import { cookies } from "next/headers";
-import { createAdminClient } from "./supabase/admin";
+import { redirect } from "next/navigation";
 
 type ActionState = ActionSuccess | StructuredError;
 
@@ -22,13 +22,14 @@ export async function createRoom(_: ActionState): Promise<ActionState> {
         success: false, 
         message: ClientError.RoomCreate 
     };
+    let roomCode: string;
     try {
         const userId = crypto.randomUUID();
         const cookieResult = await sendUserCookies("userId", userId);
         if(!cookieResult.success) {
             return cookieResult;
         }
-        const roomCode = generateRandomString(8);
+        roomCode = generateRandomString(8);
         const roomInsertResult = await supabaseInsert("rooms", {
             code: roomCode,
             is_public: true
@@ -47,11 +48,12 @@ export async function createRoom(_: ActionState): Promise<ActionState> {
         if(!playerInsertResult.success) {
             return generalError;
         }
-        return { success: true, message: ClientSuccess.RoomCreate }
     } catch(e) {
         logError(ErrorStatus.RoomCreate, e);
         return generalError;
     }
+    // this internally throws err for some reason so must be outside try/catch
+    redirect(`/${roomCode}`);
 }
 
 export async function checkCookie() {
