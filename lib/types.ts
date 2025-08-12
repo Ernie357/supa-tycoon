@@ -1,3 +1,5 @@
+import { Database } from "@/database.types";
+
 // for error logging purposes only
 export enum ErrorStatus {
     Cookie = "Cookie Error",
@@ -32,3 +34,10 @@ export type ActionSuccess = {
     success: true;
     message?: ClientSuccess; 
 };
+
+// Database Aliases
+
+export type DatabasePublic = Database["public"];
+export type DatabaseTables = DatabasePublic["Tables"];
+export type DatabaseRooms = DatabaseTables["rooms"];
+export type DatabasePlayers = DatabaseTables["players"];

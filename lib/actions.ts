@@ -1,6 +1,6 @@
 'use server';
 
-import { ActionSuccess, ClientError, ClientSuccess, ErrorStatus, StructuredError } from "@/lib/types";
+import { ActionSuccess, ClientError, DatabasePlayers, DatabaseRooms, ErrorStatus, StructuredError } from "@/lib/types";
 import { logError } from "@/lib/utils";
 import { sendUserCookies, supabaseInsert } from "./actionOps";
 import { cookies } from "next/headers";
@@ -30,14 +30,14 @@ export async function createRoom(_: ActionState): Promise<ActionState> {
             return cookieResult;
         }
         roomCode = generateRandomString(8);
-        const roomInsertResult = await supabaseInsert("rooms", {
+        const roomInsertResult = await supabaseInsert<DatabaseRooms["Insert"]>("rooms", {
             code: roomCode,
             is_public: true
         });
         if(!roomInsertResult.success) {
             return generalError;
         }
-        const playerInsertResult = await supabaseInsert("players", {
+        const playerInsertResult = await supabaseInsert<DatabasePlayers["Insert"]>("players", {
             id: userId,
             name: "Johnny Tycoon",
             room_code: roomCode,

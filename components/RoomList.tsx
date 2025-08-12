@@ -3,10 +3,11 @@ import { createClient } from "@/lib/supabase/client";
 import { useActionState, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { checkCookie, clearCookie, createRoom } from "@/lib/actions";
+import { DatabaseRooms } from "@/lib/types";
 
-export default function RoomList({ rooms }: { rooms: any[] | null }) {
+export default function RoomList({ rooms }: { rooms: DatabaseRooms["Row"][] | null }) {
     const [state, action, isPending] = useActionState(createRoom, { success: false });
-    const [roomsList, setRoomsList] = useState(rooms);
+    const [roomsList, setRoomsList] = useState<DatabaseRooms["Row"][] | null>(rooms);
 
     useEffect(() => {
         const supabase = createClient();
@@ -15,7 +16,7 @@ export default function RoomList({ rooms }: { rooms: any[] | null }) {
             .on(
                 'postgres_changes',
                 { event: 'INSERT', schema: 'public', table: 'rooms' },
-                (payload) => { setRoomsList(prev => !prev ? [payload.new] : [...prev, payload.new]) }
+                (payload) => { setRoomsList(prev => !prev ? [payload.new as DatabaseRooms["Row"]] : [...prev, payload.new as DatabaseRooms["Row"]]) }
             )
             .on(
                 'postgres_changes',

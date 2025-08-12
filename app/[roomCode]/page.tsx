@@ -12,7 +12,7 @@ export default async function RoomPage({ params }: { params: Promise<{ roomCode:
 
     return (
         <>
-            <p>Welcome to room {roomCode}</p>
+            <p className="text-2xl">Welcome to room {roomCode}</p>
         </>
     )
 }

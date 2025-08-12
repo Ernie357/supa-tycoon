@@ -1,9 +1,10 @@
 // general error rule: if it 
 
 import { cookies } from "next/headers";
-import { ActionSuccess, ClientError, ErrorStatus, StructuredError } from "./types";
+import { ActionSuccess, ClientError, DatabaseTables, ErrorStatus, StructuredError } from "./types";
 import { logError } from "./utils";
 import { createAdminClient } from "./supabase/admin";
+import { Database } from "@/database.types";
 
 type Return = Promise<ActionSuccess | StructuredError>;
 
@@ -21,7 +22,7 @@ export async function sendUserCookies(cookieKey: string, cookieValue: string): R
     }
 }
 
-export async function supabaseInsert<T = any>(tableName: string, data: T): Return {
+export async function supabaseInsert<T = DatabaseTables>(tableName: string, data: T): Return {
     try {
         const supabase = createAdminClient();
         const roomResult = await supabase.from(tableName).insert(data);
