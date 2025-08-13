@@ -2,7 +2,7 @@
 
 import { ActionSuccess, ClientError, DatabasePlayers, DatabaseRooms, ErrorStatus, StructuredError } from "@/lib/types";
 import { logError } from "@/lib/utils";
-import { sendUserCookies, supabaseInsert } from "./actionOps";
+import { checkCookies, sendCookies, sendUserCookie, supabaseInsert } from "./actionOps";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -24,11 +24,6 @@ export async function createRoom(_: ActionState): Promise<ActionState> {
     };
     let roomCode: string;
     try {
-        const userId = crypto.randomUUID();
-        const cookieResult = await sendUserCookies("userId", userId);
-        if(!cookieResult.success) {
-            return cookieResult;
-        }
         roomCode = generateRandomString(8);
         const roomInsertResult = await supabaseInsert<DatabaseRooms["Insert"]>("rooms", {
             code: roomCode,
@@ -37,16 +32,23 @@ export async function createRoom(_: ActionState): Promise<ActionState> {
         if(!roomInsertResult.success) {
             return generalError;
         }
-        const playerInsertResult = await supabaseInsert<DatabasePlayers["Insert"]>("players", {
-            id: userId,
-            name: "Johnny Tycoon",
-            room_code: roomCode,
-            score: null,
-            rank: null,
-            image_url: "Johnny image_url"
-        });
-        if(!playerInsertResult.success) {
-            return generalError;
+        const playerExists = await checkCookies("playerId");
+        if(!playerExists) {
+            const newIdResult = await sendUserCookie();
+            if(!newIdResult.success) {
+                return newIdResult;
+            }
+            const playerInsertResult = await supabaseInsert<DatabasePlayers["Insert"]>("players", {
+                id: newIdResult.playerId,
+                name: "Johnny Tycoon",
+                room_code: roomCode,
+                score: null,
+                rank: null,
+                image_url: "Johnny image_url"
+            });
+            if(!playerInsertResult.success) {
+                return generalError;
+            }
         }
     } catch(e) {
         logError(ErrorStatus.RoomCreate, e);
@@ -57,11 +59,11 @@ export async function createRoom(_: ActionState): Promise<ActionState> {
 }
 
 export async function checkCookie() {
-    const cookieStore = await cookies();
-    console.log(`Cookie: ${cookieStore.get("userId")?.value}`);
+    const result = await checkCookies('playerId');
+    console.log('Cookie: ' + result);
 }
 
 export async function clearCookie() {
     const cookieStore = await cookies();
-    cookieStore.delete("userId");
+    cookieStore.delete("playerId");
 }

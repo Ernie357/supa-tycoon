@@ -41,3 +41,4 @@ export type DatabasePublic = Database["public"];
 export type DatabaseTables = DatabasePublic["Tables"];
 export type DatabaseRooms = DatabaseTables["rooms"];
 export type DatabasePlayers = DatabaseTables["players"];
+export type DatabaseActiveCards = DatabaseTables["active_cards"];

@@ -4,11 +4,10 @@ import { cookies } from "next/headers";
 import { ActionSuccess, ClientError, DatabaseTables, ErrorStatus, StructuredError } from "./types";
 import { logError } from "./utils";
 import { createAdminClient } from "./supabase/admin";
-import { Database } from "@/database.types";
 
 type Return = Promise<ActionSuccess | StructuredError>;
 
-export async function sendUserCookies(cookieKey: string, cookieValue: string): Return {
+export async function sendCookies(cookieKey: string, cookieValue: string): Return {
     try {
         const cookieStore = await cookies();
         cookieStore.set(cookieKey, cookieValue, {
@@ -20,6 +19,21 @@ export async function sendUserCookies(cookieKey: string, cookieValue: string): R
         logError(ErrorStatus.Cookie, e);
         return { success: false, message: ClientError.Cookie };
     }
+}
+
+export async function sendUserCookie(): Promise<{ success: true, playerId: string } | StructuredError> {
+    const playerId = crypto.randomUUID();
+    const cookieResult = await sendCookies("playerId", playerId);
+    if(!cookieResult.success) {
+        return cookieResult;
+    }
+    return { success: true, playerId: playerId };
+}
+
+export async function checkCookies(cookieKey: string): Promise<string | null> {
+    const cookieStore = await cookies();
+    const result = cookieStore.get(cookieKey);
+    return result === undefined ? null : result.value;
 }
 
 export async function supabaseInsert<T = DatabaseTables>(tableName: string, data: T): Return {

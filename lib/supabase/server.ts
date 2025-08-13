@@ -4,6 +4,8 @@ import { cookies } from "next/headers";
 // this client is optimized for ssr and can interact / set HTTP-only cookies
 export async function createClient() {
     const cookieStore = await cookies();
+    const playerId = cookieStore.get('playerId');
+    const customHeader = playerId === undefined ? '' : playerId.value;
 
     return createServerClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -25,6 +27,12 @@ export async function createClient() {
                     }
                 },
             },
+            global: {
+                headers: {
+                    // Pass custom data via headers for custom RLS
+                    'x-user-id': customHeader,
+                }
+            }
         },
     );
 }
