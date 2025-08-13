@@ -2,10 +2,9 @@ import RoomList from "@/components/RoomList";
 import { createClient } from "@/lib/supabase/server";
 import { DatabaseRooms } from "@/lib/types";
 
-export default async function LandingPage({ searchParams }: { searchParams: Promise<{ e: string }> }) {
+export default async function LandingPage() {
 	const supabase = await createClient();
 	const rooms: DatabaseRooms["Row"][] | null = (await supabase.from("rooms").select('*')).data;
-	const error = (await searchParams).e;
 	// const { data: cards } = await supabase.from("cards").select();
 	// const { data: { publicUrl: imageUrl } } = supabase.storage.from('persona-tycoon-assets').getPublicUrl('p5/images/cards/Card04SideA_Clubs_of_Aces.jpg');
 
@@ -13,7 +12,6 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
 		<>
 			<h1>Hello!</h1>
 			<RoomList rooms={rooms} />
-			{ error && <p className="color-red-500">{error}</p> }
 		</>
 	);
 }
