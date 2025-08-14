@@ -2,7 +2,7 @@
 
 import { ActionSuccess, ClientError, DatabasePlayers, DatabaseRooms, ErrorStatus, StructuredError } from "@/lib/types";
 import { logError } from "@/lib/utils";
-import { checkCookies, sendCookies, sendUserCookie, supabaseInsert } from "./actionOps";
+import { checkCookies, sendUserCookie, supabaseInsert } from "./actionOps";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
