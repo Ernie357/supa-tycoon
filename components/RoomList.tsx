@@ -29,7 +29,7 @@ export default function RoomList({ rooms }: { rooms: DatabaseRooms["Row"][] | nu
         };
     }, []);
 
-    const roomElements = roomsList?.map(room => {
+    const roomElements = !roomsList ? <></> : roomsList.map(room => {
         return (
             <p key={room.code}>{room.code}</p>
         );

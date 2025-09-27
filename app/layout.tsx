@@ -24,7 +24,7 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en" suppressHydrationWarning>
-            <body className={`${p5Font.className} antialiased p-5`}>
+            <body className={`${p5Font.className} antialiased p-5 bg-[#d92323]`}>
                 {children}
             </body>
         </html>

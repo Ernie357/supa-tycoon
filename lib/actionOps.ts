@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { ActionSuccess, ClientError, DatabaseTables, ErrorStatus, StructuredError } from "./types";
 import { logError } from "./utils";
 import { createAdminClient } from "./supabase/admin";
+import { PostgrestError } from "@supabase/supabase-js";
 
 type Return = Promise<ActionSuccess | StructuredError>;
 
@@ -36,16 +37,62 @@ export async function checkCookies(cookieKey: string): Promise<string | null> {
     return result === undefined ? null : result.value;
 }
 
-export async function supabaseInsert<T = DatabaseTables>(tableName: string, data: T): Return {
+export async function supabaseUpsert<K extends keyof DatabaseTables>(
+    tableName: K, 
+    data: DatabaseTables[K]["Insert"]
+): Promise<ActionSuccess<DatabaseTables[K]["Insert"]> | StructuredError<{errorCode: string}>>
+{
+    try {
+        const supabase = createAdminClient();
+        const roomResult = await supabase.from(tableName).upsert(data);
+        if(roomResult.error) {
+            throw new Error(JSON.stringify(roomResult.error));
+        }
+        return { success: true, data: data };
+    } catch(e) {
+        if(!(e instanceof PostgrestError)) {
+            logError(ErrorStatus.PGInsert, "unknown error.");
+            return { success: false };
+        }
+        logError(ErrorStatus.PGInsert, e);
+        return { success: false, specifics: { errorCode: e.code } };
+    }
+}
+
+export async function supabaseInsert<K extends keyof DatabaseTables>(
+    tableName: string, 
+    data: DatabaseTables[K]["Insert"]
+): Promise<ActionSuccess<DatabaseTables[K]["Insert"]> | StructuredError<{errorCode: string}>>
+{
     try {
         const supabase = createAdminClient();
         const roomResult = await supabase.from(tableName).insert(data);
         if(roomResult.error) {
             throw new Error(JSON.stringify(roomResult.error));
         }
-        return { success: true };
+        return { success: true, data: data };
     } catch(e) {
+        if(!(e instanceof PostgrestError)) {
+            logError(ErrorStatus.PGInsert, "unknown error.");
+            return { success: false };
+        }
         logError(ErrorStatus.PGInsert, e);
-        return { success: false };
+        return { success: false, specifics: { errorCode: e.code } };
     }
+}
+
+type DeleteReturn = Promise<ActionSuccess | StructuredError<{errorCode: string}>>;
+export async function supabaseDelete<T = DatabaseTables>(tableName: string, data: T): DeleteReturn {
+    try {
+        const supabase = createAdminClient();
+        const deleteResult = await supabase.from(tableName).delete()
+    } catch(e) {
+        if(!(e instanceof PostgrestError)) {
+            logError(ErrorStatus.PGInsert, "unknown error.");
+            return { success: false };
+        }
+        logError(ErrorStatus.PGDelete, e);
+        return { success: false, specifics: { errorCode: e.code } };
+    }
+    return { success: false };
 }
