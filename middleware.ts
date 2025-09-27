@@ -5,12 +5,12 @@ import { NextRequest, NextResponse } from "next/server";
 export async function middleware(request: NextRequest) {
     const url = request.nextUrl.clone();
     const pathname = request.nextUrl.pathname;
-    if(pathname.match(/^\/[a-zA-Z0-9]{8}/)) { // room code
+    if(pathname.match(/^\/[a-zA-Z0-9]+$/)) { // room code
         const roomCode = pathname.replace('/', '');
         const supabase = createAdminClient();
         const matchingRooms = await supabase.from("rooms").select("*").eq("code", roomCode);
         if(!matchingRooms.data || matchingRooms.data.length === 0) {
-            url.pathname = '/room-not-found';
+            url.pathname = `/room-error/not-found/${roomCode}`;
             return NextResponse.redirect(url);
         }
         const existingCookie = await checkCookies('playerId');
