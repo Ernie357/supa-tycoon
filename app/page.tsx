@@ -1,17 +1,16 @@
 import RoomList from "@/components/RoomList";
+import { Button } from "@/components/ui/button";
 import { createAdminClient } from "@/lib/supabase/admin";
+import Link from "next/link";
 
 export default async function LandingPage() {
 	const supabase = createAdminClient();
 	const rooms = (await supabase.from("rooms").select('*').eq("is_public", true));
-	// const { data: cards } = await supabase.from("cards").select();
-	// const { data: { publicUrl: imageUrl } } = supabase.storage.from('persona-tycoon-assets').getPublicUrl('p5/images/cards/Card04SideA_Clubs_of_Aces.jpg');
-	// console.log(await supabase.from("players").select(SelectAll.Players));
 
 	return (
-		<>
-			<h1>Hello!</h1>
+		<main className="flex flex-col gap-10">
 			<RoomList rooms={rooms.data} />
-		</>
+			<Link href="/create-room"><Button>Create a Room</Button></Link>
+		</main>
 	);
 }

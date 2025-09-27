@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 export async function middleware(request: NextRequest) {
     const url = request.nextUrl.clone();
     const pathname = request.nextUrl.pathname;
-    if(pathname.match(/^\/[a-zA-Z0-9]+$/)) { // room code
+    if(pathname.match(/^\/[a-zA-Z0-9]{8}$/)) { // room code
         const roomCode = pathname.replace('/', '');
         const supabase = createAdminClient();
         const matchingRooms = await supabase.from("rooms").select("*").eq("code", roomCode);
@@ -13,38 +13,12 @@ export async function middleware(request: NextRequest) {
             url.pathname = `/room-error/not-found/${roomCode}`;
             return NextResponse.redirect(url);
         }
-        const existingCookie = await checkCookies('playerId');
-        if(!existingCookie) {
-            const cookieResult = await sendUserCookie();
-            if(!cookieResult.success) {
-                url.pathname = '/room-error';
-                return NextResponse.redirect(url);
-            }
-            const playerInsertResult = await supabaseInsert("players", {
-                id: cookieResult.playerId!,
-                name: "Johnny Tycoon",
-                room_code: roomCode,
-                score: null,
-                rank: null,
-                image_url: "Johnny image_url"
-            });
-            if(!playerInsertResult.success) {
-                url.pathname = '/room-error';
-                return NextResponse.redirect(url);
-            }
-        } else {
-            const playerInsertResult = await supabaseUpsert("players", {
-                id: existingCookie,
-                name: "Johnny Tycoon",
-                room_code: roomCode,
-                score: null,
-                rank: null,
-                image_url: "Johnny image_url"
-            });
-            if(!playerInsertResult.success) {
-                url.pathname = '/room-error';
-                return NextResponse.redirect(url);
-            }
+        return NextResponse.next();
+    }
+    if(pathname.match(/^\/.+$/)) {
+        if(pathname !== '/create-room' && pathname !== '/join-room') {
+            url.pathname = '/';
+            return NextResponse.redirect(url);
         }
     }
     return NextResponse.next();

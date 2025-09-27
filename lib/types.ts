@@ -43,6 +43,8 @@ export type ActionSuccess<D = undefined> = {
     data?: D;
 };
 
+export type ActionState = ActionSuccess | StructuredError;
+
 // Database Aliases
 
 export type DatabasePublic = Database["public"];

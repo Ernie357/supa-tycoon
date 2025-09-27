@@ -1,13 +1,11 @@
 'use server';
 
-import { ActionSuccess, ClientError, DatabasePlayers, DatabaseRooms, ErrorStatus, StructuredError } from "@/lib/types";
+import { ActionState, ActionSuccess, ClientError, ErrorStatus, StructuredError } from "@/lib/types";
 import { logError } from "@/lib/utils";
-import { checkCookies, sendUserCookie, supabaseInsert } from "./actionOps";
+import { checkCookies, sendUserCookie, supabaseInsert, supabaseUpsert } from "./actionOps";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createAdminClient } from "./supabase/admin";
-
-type ActionState = ActionSuccess | StructuredError;
 
 function generateRandomString(length: number): string {
     let result = "";
@@ -18,11 +16,18 @@ function generateRandomString(length: number): string {
     return result;
 }
 
-export async function createRoom(_: ActionState): Promise<ActionState> {
+export async function createRoom( _: ActionState, formData: FormData): Promise<ActionState> {
     const generalError: StructuredError = { 
         success: false, 
         message: ClientError.RoomCreate 
     };
+    const playerName = formData.get("player-name")?.toString();
+    const playerImage = formData.get("player-image")?.toString();
+    const isPublic = formData.get("is_public") === "on";
+    if(!playerName || !playerImage) {
+        return generalError;
+    }
+    console.log(playerName, playerImage, isPublic);
     let roomCode: string;
     try {
         roomCode = generateRandomString(8);
@@ -32,6 +37,29 @@ export async function createRoom(_: ActionState): Promise<ActionState> {
         });
         if(!roomInsertResult.success) {
             return generalError;
+        }
+        const existingCookie = await checkCookies('playerId');
+        const playerToInsert = {
+            name: playerName,
+            room_code: roomCode,
+            score: null,
+            rank: null,
+            image_url: playerImage
+        } 
+        if(!existingCookie) {
+            const cookieResult = await sendUserCookie();
+            if(!cookieResult.success) {
+                redirect('/room-error');
+            }
+            const playerInsertResult = await supabaseInsert("players", { ...playerToInsert, id: cookieResult.playerId });
+            if(!playerInsertResult.success) {
+                redirect('room-error')
+            }
+        } else {
+            const playerInsertResult = await supabaseUpsert("players", { ...playerToInsert, id: existingCookie });
+            if(!playerInsertResult.success) {
+                redirect('room-error');
+            }
         }
     } catch(e) {
         logError(ErrorStatus.RoomCreate, e);

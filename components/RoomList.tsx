@@ -1,12 +1,11 @@
 "use client";
 import { createClient } from "@/lib/supabase/client";
-import { useActionState, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { checkCookie, clearCookie, createRoom } from "@/lib/actions";
 import { DatabaseRooms } from "@/lib/types";
 
 export default function RoomList({ rooms }: { rooms: DatabaseRooms["Row"][] | null }) {
-    const [state, action, isPending] = useActionState(createRoom, { success: false });
     const [roomsList, setRoomsList] = useState<DatabaseRooms["Row"][] | null>(rooms);
 
     useEffect(() => {
@@ -40,12 +39,6 @@ export default function RoomList({ rooms }: { rooms: DatabaseRooms["Row"][] | nu
             <h1>Room List</h1>
             {roomElements}
             <div className="flex gap-5">
-                <form className="flex flex-col" action={action}>
-                    <Button type="submit" disabled={isPending}>
-                        {isPending ? 'Creating...' : 'Create Room'}
-                    </Button>
-                    { state.message && <p>{state.message}</p> }
-                </form>
                 <Button onClick={checkCookie}>Check Cookie</Button>
                 <Button onClick={clearCookie}>Clear Cookie</Button>
             </div>
