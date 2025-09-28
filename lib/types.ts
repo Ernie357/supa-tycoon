@@ -7,7 +7,8 @@ export enum ErrorStatus {
     RoomJoin = "Room Join Error",
     PGInsert = "Supabase Insert Error",
     PGDelete = "Supabase Delete Error",
-    RoomLeave = "Room Leave Error"
+    RoomLeave = "Room Leave Error",
+    RoomConnection = "General Room Connection Error"
 };
 
 // for client feedback purposes only

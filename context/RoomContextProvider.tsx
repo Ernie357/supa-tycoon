@@ -24,12 +24,12 @@ export default function RoomContextProvider({ children, roomCode, player }: Prop
     const presence = supabase
         .channel(`room:${roomCode}`)
         .on("presence", { event: 'leave' }, ({ leftPresences }) => {
-            console.log(leftPresences);
+            //console.log(leftPresences);
         })
         .subscribe(async (status, err) => {
             if(status !== 'SUBSCRIBED') { return; }
             const presenceTrackStatus = await presence.track(player);
-            console.log('Presence: ' + presenceTrackStatus);
+            //console.log('Presence: ' + presenceTrackStatus);
         });
     return (
         <RoomContext.Provider value={roomState}>

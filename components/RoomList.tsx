@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { checkCookie, clearCookie, createRoom } from "@/lib/actions";
 import { DatabaseRooms } from "@/lib/types";
+import Link from "next/link";
 
 export default function RoomList({ rooms }: { rooms: DatabaseRooms["Row"][] | null }) {
     const [roomsList, setRoomsList] = useState<DatabaseRooms["Row"][] | null>(rooms);
@@ -30,7 +31,12 @@ export default function RoomList({ rooms }: { rooms: DatabaseRooms["Row"][] | nu
 
     const roomElements = !roomsList ? <></> : roomsList.map(room => {
         return (
-            <p key={room.code}>{room.code}</p>
+            <div className="flex gap-10" key={room.code}>
+                <p>{room.code}</p>
+                <Link href={`/join-room/${room.code}`}>
+                    <Button>Join</Button>
+                </Link>
+            </div>
         );
     });
 

@@ -2,7 +2,7 @@
 
 import { ActionState, ActionSuccess, ClientError, ErrorStatus, StructuredError } from "@/lib/types";
 import { logError } from "@/lib/utils";
-import { checkCookies, sendUserCookie, supabaseInsert, supabaseUpsert } from "./actionOps";
+import { checkCookies, handleInitPlayerConnection, sendUserCookie, supabaseInsert } from "./actionOps";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createAdminClient } from "./supabase/admin";
@@ -17,59 +17,53 @@ function generateRandomString(length: number): string {
 }
 
 export async function createRoom( _: ActionState, formData: FormData): Promise<ActionState> {
-    const generalError: StructuredError = { 
-        success: false, 
-        message: ClientError.RoomCreate 
-    };
     const playerName = formData.get("player-name")?.toString();
     const playerImage = formData.get("player-image")?.toString();
     const isPublic = formData.get("is_public") === "on";
-    if(!playerName || !playerImage) {
-        return generalError;
-    }
-    console.log(playerName, playerImage, isPublic);
     let roomCode: string;
     try {
+        if(!playerName || !playerImage) {
+            throw new Error("Missing player name or image for room create.");
+        }
         roomCode = generateRandomString(8);
         const roomInsertResult = await supabaseInsert("rooms", {
             code: roomCode,
-            is_public: true
+            is_public: isPublic
         });
         if(!roomInsertResult.success) {
-            return generalError;
+            throw new Error("Room create failed due to PG room insert.");
         }
-        const existingCookie = await checkCookies('playerId');
-        const playerToInsert = {
-            name: playerName,
-            room_code: roomCode,
-            score: null,
-            rank: null,
-            image_url: playerImage
-        } 
-        if(!existingCookie) {
-            const cookieResult = await sendUserCookie();
-            if(!cookieResult.success) {
-                redirect('/room-error');
-            }
-            const playerInsertResult = await supabaseInsert("players", { ...playerToInsert, id: cookieResult.playerId });
-            if(!playerInsertResult.success) {
-                redirect('room-error')
-            }
-        } else {
-            const playerInsertResult = await supabaseUpsert("players", { ...playerToInsert, id: existingCookie });
-            if(!playerInsertResult.success) {
-                redirect('room-error');
-            }
+        const connectResult = await handleInitPlayerConnection(playerName, playerImage, roomCode);
+        if(!connectResult.success) {
+            throw new Error("Room create failed due to player connection.");
         }
     } catch(e) {
         logError(ErrorStatus.RoomCreate, e);
-        return generalError;
+        return { success: false, message: ClientError.RoomCreate };
     }
     // this internally throws err for some reason so must be outside try/catch
     redirect(`/${roomCode}`);
 }
 
-// todo: consolidate into (hopefully?) singular supabase function to reduce calls
+export async function joinRoom(_: ActionState, formData: FormData): Promise<ActionState> {
+    const roomCode = formData.get("room-code")?.toString();
+    const playerName = formData.get("player-name")?.toString();
+    const playerImage = formData.get("player-image")?.toString();
+    try {
+        if(!roomCode || !playerName || !playerImage) {
+            throw new Error(`Missing roomcode, name, or image for Room Join in room ${roomCode}`);
+        }
+        const connectResult = await handleInitPlayerConnection(playerName, playerImage, roomCode);
+        if(!connectResult.success) {
+            throw new Error(`Room Join failed for room ${roomCode} due to player connection.`);
+        }
+    } catch(e) {
+        logError(ErrorStatus.RoomJoin, e);
+        return { success: false, message: ClientError.RoomJoin };
+    }
+    redirect(`/${roomCode}`);
+}
+
 export async function removePlayerFromRoom(_: ActionState): Promise<ActionState> {
     try {
         const supabase = createAdminClient();
@@ -77,14 +71,6 @@ export async function removePlayerFromRoom(_: ActionState): Promise<ActionState>
         const playerDeleteResult = (await supabase.from("players").delete().eq("id", playerId).select('room_code'));
         if(playerDeleteResult.error) {
             throw new Error(playerDeleteResult.error.details);
-        }
-        const roomCode = playerDeleteResult.data?.[0]?.room_code;
-        const playersRemaining = (await supabase.from("players").select("*").eq("room_code", roomCode)).count;
-        if(!playersRemaining && roomCode) {
-            const roomDeleteResult = await supabase.from("rooms").delete().eq("code", roomCode);
-            if(roomDeleteResult.error) {
-                throw new Error(roomDeleteResult.error.details);
-            }
         }
     } catch(e) {
         logError(ErrorStatus.RoomLeave, e);

@@ -81,18 +81,54 @@ export async function supabaseInsert<K extends keyof DatabaseTables>(
     }
 }
 
-type DeleteReturn = Promise<ActionSuccess | StructuredError<{errorCode: string}>>;
-export async function supabaseDelete<T = DatabaseTables>(tableName: string, data: T): DeleteReturn {
+// type DeleteReturn = Promise<ActionSuccess | StructuredError<{errorCode: string}>>;
+// export async function supabaseDelete<T = DatabaseTables>(tableName: string, data: T): DeleteReturn {
+//     try {
+//         const supabase = createAdminClient();
+//         const deleteResult = await supabase.from(tableName).delete()
+//     } catch(e) {
+//         if(!(e instanceof PostgrestError)) {
+//             logError(ErrorStatus.PGInsert, "unknown error.");
+//             return { success: false };
+//         }
+//         logError(ErrorStatus.PGDelete, e);
+//         return { success: false, specifics: { errorCode: e.code } };
+//     }
+//     return { success: false };
+// }
+
+export async function handleInitPlayerConnection(
+    playerName: string,
+    playerImage: string,
+    roomCode: string
+): Promise<ActionSuccess | StructuredError> {
     try {
-        const supabase = createAdminClient();
-        const deleteResult = await supabase.from(tableName).delete()
-    } catch(e) {
-        if(!(e instanceof PostgrestError)) {
-            logError(ErrorStatus.PGInsert, "unknown error.");
-            return { success: false };
+        const existingCookie = await checkCookies('playerId');
+        const playerToInsert = {
+            name: playerName,
+            room_code: roomCode,
+            score: null,
+            rank: null,
+            image_url: playerImage
+        } 
+        if(!existingCookie) {
+            const cookieResult = await sendUserCookie();
+            if(!cookieResult.success) {
+                throw new Error();
+            }
+            const playerInsertResult = await supabaseInsert("players", { ...playerToInsert, id: cookieResult.playerId });
+            if(!playerInsertResult.success) {
+                throw new Error();
+            }
+        } else {
+            const playerInsertResult = await supabaseUpsert("players", { ...playerToInsert, id: existingCookie });
+            if(!playerInsertResult.success) {
+                throw new Error();
+            }
         }
-        logError(ErrorStatus.PGDelete, e);
-        return { success: false, specifics: { errorCode: e.code } };
+        return { success: true };
+    } catch(e) {
+        logError(ErrorStatus.RoomConnection, e);
+        return { success: false };
     }
-    return { success: false };
 }
