@@ -2,7 +2,7 @@
 import { createClient } from "@/lib/supabase/client";
 import { RoomContext } from "./RoomContext";
 import { ClientPlayer, RoomState } from "@/lib/types";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import getInitialRoomState from "./getInitialRoomState";
 
 type Props = {
@@ -21,16 +21,19 @@ export default function RoomContextProvider({ children, roomCode, player }: Prop
         { event: 'INSERT', schema: 'public', table: 'players' },
         (payload) => {console.log(payload)}
     );
-    const presence = supabase
-        .channel(`room:${roomCode}`)
-        .on("presence", { event: 'leave' }, ({ leftPresences }) => {
-            //console.log(leftPresences);
-        })
-        .subscribe(async (status, err) => {
-            if(status !== 'SUBSCRIBED') { return; }
-            const presenceTrackStatus = await presence.track(player);
-            //console.log('Presence: ' + presenceTrackStatus);
-        });
+
+    useEffect(() => {
+        const handleLeave = () => {
+            navigator.sendBeacon('/api/leave-room', JSON.stringify({ roomCode }));
+        }
+
+        window.addEventListener('beforeunload', handleLeave);
+
+        return () => {
+            window.removeEventListener('beforeunload', handleLeave);
+        }
+    }, [roomCode]);
+
     return (
         <RoomContext.Provider value={roomState}>
             {children}
