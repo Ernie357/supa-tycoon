@@ -18,7 +18,7 @@ export default function RoomContextProvider({ children, roomCode, init }: Props)
         const channel = supabase
         .channel("rooms")
         .on(
-            "postgres_changes", 
+            'postgres_changes', 
             { event: 'INSERT', schema: 'public', table: 'players' },
             (payload) => {
                 console.log(payload);
@@ -26,6 +26,20 @@ export default function RoomContextProvider({ children, roomCode, init }: Props)
                 setRoomState(prev => {
                     return { ...prev, players: [...prev.players, newPlayer] };
                 }); 
+            }
+        )
+        .on(
+            'postgres_changes',
+            { event: 'DELETE', schema: 'public', table: 'players' },
+            (payload) => {
+                console.log(payload);
+                const deletedPlayerId = payload.old.public_id as string;
+                setRoomState(prev => {
+                    return { 
+                        ...prev, 
+                        players: prev.players.filter(p => p.public_id !== deletedPlayerId) 
+                    }
+                });
             }
         )
         .subscribe();

@@ -25,7 +25,7 @@ export enum ClientSuccess {
 };
 
 export enum SelectAll {
-    Players = "name, image_url, score, rank"
+    Players = "public_id, name, image_url, score, rank"
 };
 
 // specifics is NOT error details (like what went wrong in code)
@@ -58,6 +58,7 @@ export type DatabasePlayers = DatabaseTables["players"];
 // Client Side Data
 
 export type ClientPlayer = {
+    public_id: string;
     name: string;
     image_url: string;
     rank: string | null;
