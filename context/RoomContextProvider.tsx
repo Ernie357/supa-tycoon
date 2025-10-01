@@ -16,10 +16,10 @@ export default function RoomContextProvider({ children, roomCode, init }: Props)
 
     useEffect(() => {
         const channel = supabase
-        .channel("rooms")
+        .channel(`room;${roomCode}`)
         .on(
             'postgres_changes', 
-            { event: 'INSERT', schema: 'public', table: 'players' },
+            { event: 'INSERT', schema: 'public', table: 'players', filter: `room_code=eq.${roomCode}` },
             (payload) => {
                 console.log(payload);
                 const newPlayer = payload.new as ClientPlayer;
