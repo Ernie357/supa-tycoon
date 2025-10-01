@@ -30,7 +30,7 @@ export default function RoomContextProvider({ children, roomCode, init }: Props)
         )
         .on(
             'postgres_changes',
-            { event: 'DELETE', schema: 'public', table: 'players' },
+            { event: 'DELETE', schema: 'public', table: 'players', filter: `room_code=eq.${roomCode}` },
             (payload) => {
                 console.log(payload);
                 const deletedPlayerId = payload.old.public_id as string;
