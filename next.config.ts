@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
 	/* config options here */
+	reactStrictMode: false,
 	images: {
 		// adds supabase bucket public URL to next/image allow list
 		remotePatterns: [new URL('https://xbllebgkcodidhkjgadz.supabase.co/**')],

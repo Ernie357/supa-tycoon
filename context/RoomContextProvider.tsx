@@ -3,34 +3,45 @@ import { createClient } from "@/lib/supabase/client";
 import { RoomContext } from "./RoomContext";
 import { ClientPlayer, RoomState } from "@/lib/types";
 import { useEffect, useState } from "react";
-import getInitialRoomState from "./getInitialRoomState";
 
 type Props = {
     children: React.ReactNode;
     roomCode: string;
-    player: ClientPlayer
+    init: RoomState;
 };
 
-export default function RoomContextProvider({ children, roomCode, player }: Props) {
-    const initialState = getInitialRoomState(roomCode);
-    const [roomState, setRoomState] = useState<RoomState>(initialState);
+export default function RoomContextProvider({ children, roomCode, init }: Props) {
+    const [roomState, setRoomState] = useState<RoomState>(init);
     const supabase = createClient();
-    supabase.channel("rooms")
-    .on(
-        "postgres_changes", 
-        { event: 'INSERT', schema: 'public', table: 'players' },
-        (payload) => {console.log(payload)}
-    );
 
     useEffect(() => {
+        const channel = supabase
+        .channel("rooms")
+        .on(
+            "postgres_changes", 
+            { event: 'INSERT', schema: 'public', table: 'players' },
+            (payload) => {
+                console.log(payload);
+                const newPlayer = payload.new as ClientPlayer;
+                setRoomState(prev => {
+                    return { ...prev, players: [...prev.players, newPlayer] };
+                }); 
+            }
+        )
+        .subscribe();
         const handleLeave = () => {
             navigator.sendBeacon('/api/leave-room', JSON.stringify({ roomCode }));
         }
-
         window.addEventListener('beforeunload', handleLeave);
-
         return () => {
             window.removeEventListener('beforeunload', handleLeave);
+            fetch('/api/leave-room', {
+                method: 'POST',
+                body: JSON.stringify({ roomCode }),
+                headers: { 'Content-Type': 'application/json' },
+                keepalive: true,
+            });
+            supabase.removeChannel(channel);
         }
     }, [roomCode]);
 

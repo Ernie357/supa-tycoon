@@ -64,6 +64,8 @@ export async function joinRoom(_: ActionState, formData: FormData): Promise<Acti
     redirect(`/${roomCode}`);
 }
 
+// this is for the explicit leave room button
+// all other leaves should be handled by the api route
 export async function removePlayerFromRoom(_: ActionState): Promise<ActionState> {
     try {
         const supabase = createAdminClient();

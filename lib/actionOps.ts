@@ -109,7 +109,8 @@ export async function handleInitPlayerConnection(
             room_code: roomCode,
             score: null,
             rank: null,
-            image_url: playerImage
+            image_url: playerImage,
+            public_id: crypto.randomUUID()
         } 
         if(!existingCookie) {
             const cookieResult = await sendUserCookie();

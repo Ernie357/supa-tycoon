@@ -1,3 +1,4 @@
+"use client";
 import { RoomState } from "@/lib/types";
 import { createContext } from "react";
 
