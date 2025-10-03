@@ -40,7 +40,7 @@ export async function checkCookies(cookieKey: string): Promise<string | null> {
 export async function supabaseUpsert<K extends keyof DatabaseTables>(
     tableName: K, 
     data: DatabaseTables[K]["Insert"]
-): Promise<ActionSuccess<DatabaseTables[K]["Insert"]> | StructuredError<{errorCode: string}>>
+): Promise<ActionSuccess<DatabaseTables[K]["Insert"]> | StructuredError>
 {
     try {
         const supabase = createAdminClient();
@@ -50,19 +50,15 @@ export async function supabaseUpsert<K extends keyof DatabaseTables>(
         }
         return { success: true, data: data };
     } catch(e) {
-        if(!(e instanceof PostgrestError)) {
-            logError(ErrorStatus.PGInsert, "unknown error.");
-            return { success: false };
-        }
         logError(ErrorStatus.PGInsert, e);
-        return { success: false, specifics: { errorCode: e.code } };
+        return { success: false };
     }
 }
 
 export async function supabaseInsert<K extends keyof DatabaseTables>(
     tableName: string, 
     data: DatabaseTables[K]["Insert"]
-): Promise<ActionSuccess<DatabaseTables[K]["Insert"]> | StructuredError<{errorCode: string}>>
+): Promise<ActionSuccess<DatabaseTables[K]["Insert"]> | StructuredError>
 {
     try {
         const supabase = createAdminClient();
@@ -72,12 +68,8 @@ export async function supabaseInsert<K extends keyof DatabaseTables>(
         }
         return { success: true, data: data };
     } catch(e) {
-        if(!(e instanceof PostgrestError)) {
-            logError(ErrorStatus.PGInsert, "unknown error.");
-            return { success: false };
-        }
         logError(ErrorStatus.PGInsert, e);
-        return { success: false, specifics: { errorCode: e.code } };
+        return { success: false };
     }
 }
 

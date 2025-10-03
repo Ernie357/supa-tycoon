@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/client";
 import { RoomContext } from "./RoomContext";
 import { ClientPlayer, RoomState } from "@/lib/types";
 import { useEffect, useState } from "react";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 type Props = {
     children: React.ReactNode;
@@ -14,14 +14,22 @@ type Props = {
 export default function RoomContextProvider({ children, roomCode, init }: Props) {
     const [roomState, setRoomState] = useState<RoomState>(init);
     const supabase = createClient();
+    const router = useRouter();
 
     useEffect(() => {
+        const nav = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
+        if(nav.type === 'reload' && sessionStorage.getItem('roomCode') === roomCode) {
+            // refresh happened
+            router.replace('/');
+        } else {
+            sessionStorage.setItem('roomCode', roomCode);
+        }
         const channel = supabase
         .channel(`room:${roomCode}`)
         .on(
             'postgres_changes',
-            { event: 'DELETE', schema: 'public', table: 'players', filter: `room_code=eq.${roomCode}` },
-            (_) => { redirect('/room-error/disbanded'); }
+            { event: 'DELETE', schema: 'public', table: 'rooms', filter: `code=eq.${roomCode}` },
+            (_) => { router.replace('/'); }
         )
         .on(
             'postgres_changes', 
@@ -62,6 +70,7 @@ export default function RoomContextProvider({ children, roomCode, init }: Props)
                 keepalive: true,
             });
             supabase.removeChannel(channel);
+            router.replace('/');
         }
     }, [roomCode]);
 
