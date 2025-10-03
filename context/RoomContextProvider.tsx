@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/client";
 import { RoomContext } from "./RoomContext";
 import { ClientPlayer, RoomState } from "@/lib/types";
 import { useEffect, useState } from "react";
+import { redirect } from "next/navigation";
 
 type Props = {
     children: React.ReactNode;
@@ -16,7 +17,12 @@ export default function RoomContextProvider({ children, roomCode, init }: Props)
 
     useEffect(() => {
         const channel = supabase
-        .channel(`room;${roomCode}`)
+        .channel(`room:${roomCode}`)
+        .on(
+            'postgres_changes',
+            { event: 'DELETE', schema: 'public', table: 'players', filter: `room_code=eq.${roomCode}` },
+            (_) => { redirect('/room-error/disbanded'); }
+        )
         .on(
             'postgres_changes', 
             { event: 'INSERT', schema: 'public', table: 'players', filter: `room_code=eq.${roomCode}` },
