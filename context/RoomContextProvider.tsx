@@ -30,7 +30,7 @@ export default function RoomContextProvider({ children, roomCode, init, player }
         .on(
             'postgres_changes',
             { event: 'DELETE', schema: 'public', table: 'rooms', filter: `code=eq.${roomCode}` },
-            (_) => { router.replace('/'); }
+            (_) => { alert('The room has been disbanded.'); router.replace('/'); }
         )
         .on(
             'postgres_changes', 

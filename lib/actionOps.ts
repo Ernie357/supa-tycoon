@@ -4,7 +4,6 @@ import { cookies } from "next/headers";
 import { ActionSuccess, ClientError, DatabaseTables, ErrorStatus, StructuredError } from "./types";
 import { logError } from "./utils";
 import { createAdminClient } from "./supabase/admin";
-import { PostgrestError } from "@supabase/supabase-js";
 
 type Return = Promise<ActionSuccess | StructuredError>;
 

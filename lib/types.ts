@@ -10,7 +10,8 @@ export enum ErrorStatus {
     PGSelect = "Supabase Select Error",
     PGDelete = "Supabase Delete Error",
     RoomLeave = "Room Leave Error",
-    RoomConnection = "General Room Connection Error"
+    RoomConnection = "General Room Connection Error",
+    RoomDisband = "Room Disband Error"
 };
 
 // for client feedback purposes only
@@ -18,7 +19,8 @@ export enum ClientError {
     General = "Internal Server Error. Please try again.",
     RoomCreate = "There was an error creating a room.",
     RoomJoin = "There was an error joining the room.",
-    RoomLeave = "There was an erro leaving the room.",
+    RoomLeave = "There was an error leaving the room.",
+    RoomDisband = "There was an error disbanding the room",
     Cookie = "There was an error creating the room session.",
 };
 

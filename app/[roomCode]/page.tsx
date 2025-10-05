@@ -1,6 +1,6 @@
+import DisbandRoomButton from "@/components/room/DisbandRoomButton";
 import LeaveRoom from "@/components/room/LeaveRoom";
 import PlayerList from "@/components/room/PlayerList";
-import { Button } from "@/components/ui/button";
 import RoomContextProvider from "@/context/RoomContextProvider";
 import { checkCookies } from "@/lib/actionOps";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -45,14 +45,13 @@ export default async function RoomPage({ params }: { params: Promise<{ roomCode:
         redirect('room-error');
     }
     const player = stripId(initPlayer);
-    console.log(player);
 
     return (
         <RoomContextProvider roomCode={roomCode} init={initState} player={player}>
             <p className="text-2xl">Welcome to room {roomCode}</p>
             <LeaveRoom />
             <PlayerList />
-            {player.is_host && <Button>Disband Room</Button>}
+            { player.is_host && <DisbandRoomButton /> }
         </RoomContextProvider>
     );
 }
