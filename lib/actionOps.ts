@@ -44,13 +44,13 @@ export async function supabaseUpsert<K extends keyof DatabaseTables>(
 {
     try {
         const supabase = createAdminClient();
-        const roomResult = await supabase.from(tableName).upsert(data);
+        const roomResult = await supabase.from(tableName).upsert(data, { onConflict: 'id' });
         if(roomResult.error) {
             throw new Error(JSON.stringify(roomResult.error));
         }
         return { success: true, data: data };
     } catch(e) {
-        logError(ErrorStatus.PGInsert, e);
+        logError(ErrorStatus.PGUpsert, e);
         return { success: false };
     }
 }
@@ -92,7 +92,8 @@ export async function supabaseInsert<K extends keyof DatabaseTables>(
 export async function handleInitPlayerConnection(
     playerName: string,
     playerImage: string,
-    roomCode: string
+    roomCode: string,
+    type: "join" | "create" = "join",
 ): Promise<ActionSuccess | StructuredError> {
     try {
         const existingCookie = await checkCookies('playerId');
@@ -102,7 +103,8 @@ export async function handleInitPlayerConnection(
             score: null,
             rank: null,
             image_url: playerImage,
-            public_id: crypto.randomUUID()
+            public_id: crypto.randomUUID(),
+            is_host: type === "create"
         } 
         if(!existingCookie) {
             const cookieResult = await sendUserCookie();
@@ -114,6 +116,7 @@ export async function handleInitPlayerConnection(
                 throw new Error();
             }
         } else {
+            console.log('upserting!');
             const playerInsertResult = await supabaseUpsert("players", { ...playerToInsert, id: existingCookie });
             if(!playerInsertResult.success) {
                 throw new Error();

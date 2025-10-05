@@ -33,7 +33,7 @@ export async function createRoom( _: ActionState, formData: FormData): Promise<A
         if(!roomInsertResult.success) {
             throw new Error("Room create failed due to PG room insert.");
         }
-        const connectResult = await handleInitPlayerConnection(playerName, playerImage, roomCode);
+        const connectResult = await handleInitPlayerConnection(playerName, playerImage, roomCode, "create");
         if(!connectResult.success) {
             throw new Error("Room create failed due to player connection.");
         }

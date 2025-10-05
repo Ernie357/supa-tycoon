@@ -6,6 +6,8 @@ export enum ErrorStatus {
     RoomCreate = "Room Creation Error",
     RoomJoin = "Room Join Error",
     PGInsert = "Supabase Insert Error",
+    PGUpsert = "Supabase Upsert Error",
+    PGSelect = "Supabase Select Error",
     PGDelete = "Supabase Delete Error",
     RoomLeave = "Room Leave Error",
     RoomConnection = "General Room Connection Error"
@@ -63,6 +65,7 @@ export type ClientPlayer = {
     image_url: string;
     rank: string | null;
     score: number | null;
+    is_host: boolean;
 };
 
 export type ClientRoomMessage = {
@@ -74,7 +77,7 @@ export type ClientRoomMessage = {
 
 export type RoomState = {
     roomCode: string;
-    roomHost: string;
+    roomHost: ClientPlayer;
     players: ClientPlayer[];
     messages: ClientRoomMessage[];
 };
