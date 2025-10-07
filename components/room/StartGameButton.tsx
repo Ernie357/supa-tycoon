@@ -12,8 +12,10 @@ export default function StartGameButton() {
         return result;
     }
     const [state, formAction, isPending] = useActionState(action, { success: true });
+    if(room.players.length < 4) {
+        return null;
+    }
 
-    // add check if players.length > 4
     return (
         <form action={formAction} className="mt-5">
             <Button type="submit" disabled={isPending}>

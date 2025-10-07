@@ -9,10 +9,9 @@ type Props = {
     children: React.ReactNode;
     roomCode: string;
     init: RoomState;
-    player: ClientPlayer;
 };
 
-export default function RoomContextProvider({ children, roomCode, init, player }: Props) {
+export default function RoomContextProvider({ children, roomCode, init }: Props) {
     const [roomState, setRoomState] = useState<RoomState>(init);
     const supabase = createClient();
     const router = useRouter();

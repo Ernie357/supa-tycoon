@@ -1,3 +1,4 @@
+import ChatPanel from "@/components/room/ChatPanel";
 import DisbandRoomButton from "@/components/room/DisbandRoomButton";
 import LeaveRoom from "@/components/room/LeaveRoom";
 import PlayerList from "@/components/room/PlayerList";
@@ -29,12 +30,6 @@ export default async function RoomPage({ params }: { params: Promise<{ roomCode:
         logError(ErrorStatus.RoomConnection, "No pg player data / no roomCode on page load.");
         redirect('room-error');
     }
-    const initState: RoomState = {
-        roomCode: roomCode,
-        roomHost: stripId(initPlayers.data.find(p => p.is_host)!),
-        players: initPlayers.data.map(p => stripId(p)),
-        messages: []
-    };
     const playerId = await checkCookies('playerId');
     if(!playerId) {
         logError(ErrorStatus.RoomConnection, "No playerId cookie on page load.");
@@ -46,14 +41,22 @@ export default async function RoomPage({ params }: { params: Promise<{ roomCode:
         redirect('room-error');
     }
     const player = stripId(initPlayer);
+    const initState: RoomState = {
+    roomCode: roomCode,
+    roomHost: stripId(initPlayers.data.find(p => p.is_host)!),
+    players: initPlayers.data.map(p => stripId(p)),
+    messages: [],
+    player: player
+};
 
     return (
-        <RoomContextProvider roomCode={roomCode} init={initState} player={player}>
+        <RoomContextProvider roomCode={roomCode} init={initState}>
             <p className="text-2xl">Welcome to room {roomCode}</p>
             <LeaveRoom />
             <PlayerList />
             { player.is_host && <DisbandRoomButton /> }
             { player.is_host && <StartGameButton /> }
+            <ChatPanel />
         </RoomContextProvider>
     );
 }

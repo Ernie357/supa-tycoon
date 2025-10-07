@@ -12,7 +12,8 @@ export enum ErrorStatus {
     RoomLeave = "Room Leave Error",
     RoomConnection = "General Room Connection Error",
     RoomDisband = "Room Disband Error",
-    GameStart = "Start Game Error"
+    GameStart = "Start Game Error",
+    MessageSend = "Player Message Send Error"
 };
 
 // for client feedback purposes only
@@ -23,7 +24,8 @@ export enum ClientError {
     RoomLeave = "There was an error leaving the room.",
     RoomDisband = "There was an error disbanding the room",
     Cookie = "There was an error creating the room session.",
-    GameStart = "There was an error starting the game."
+    GameStart = "There was an error starting the game.",
+    MessageSend = "Error sending message."
 };
 
 export enum ClientSuccess {
@@ -84,4 +86,5 @@ export type RoomState = {
     roomHost: ClientPlayer;
     players: ClientPlayer[];
     messages: ClientRoomMessage[];
+    player: ClientPlayer;
 };

@@ -105,6 +105,19 @@ export async function startGame(roomCode: string, _: ActionState): Promise<Actio
     }
 }
 
+export async function sendMessage(formData: FormData, _: ActionState): Promise<ActionState> {
+    try {
+        const roomCode = formData.get("room-code")?.toString();
+        const message = formData.get("player-message")?.toString();
+        const name = formData.get("player-name")?.toString();
+        console.log(roomCode, message, name);
+        return { success: true };
+    } catch(e) {
+        logError(ErrorStatus.MessageSend, e);
+        return { success: false, message: ClientError.MessageSend };
+    }
+} 
+
 export async function checkCookie() {
     const result = await checkCookies('playerId');
     console.log('Cookie: ' + result);
