@@ -9,18 +9,11 @@ import { sendMessage } from "@/lib/actions";
 export default function ChatPanel() {
     const room = useContext(RoomContext);
 
-    const action = async (prev: ActionState, formData: FormData ): Promise<ActionState> => {
-        formData.append("room-code", room.roomCode);
-        formData.append("player-name", room.player.name);
-        const result = await sendMessage(formData, prev);
-        return result;
-    }
-
-    const [state, formAction, isPending] = useActionState(action, { success: true });
+    const [state, formAction, isPending] = useActionState(sendMessage, { success: true });
 
     const messageElements = room.messages.map(message => {
         return (
-            <div className="flex gap-10 border-2 border-black" key={message.sentAt}>
+            <div className="flex gap-10 border-2 border-black" key={message.sent_at}>
                 <p>{message.sender}: </p>
                 <p>{message.content}</p>
             </div>

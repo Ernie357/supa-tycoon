@@ -1,7 +1,7 @@
 "use client";
 import { createClient } from "@/lib/supabase/client";
 import { RoomContext } from "./RoomContext";
-import { ClientPlayer, RoomState } from "@/lib/types";
+import { ClientPlayer, ClientRoomMessage, RoomState } from "@/lib/types";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -53,6 +53,17 @@ export default function RoomContextProvider({ children, roomCode, init }: Props)
                         ...prev, 
                         players: prev.players.filter(p => p.public_id !== deletedPlayerId) 
                     }
+                });
+            }
+        )
+        .on(
+            'postgres_changes',
+            { event: 'INSERT', schema: 'public', table: 'messages', filter: `room_code=eq.${roomCode}` },
+            (payload) => {
+                console.log('message add: ' + JSON.stringify(payload));
+                const newMessage = payload.new as ClientRoomMessage;
+                setRoomState(prev => {
+                    return { ...prev, messages: [...prev.messages, newMessage] };
                 });
             }
         )

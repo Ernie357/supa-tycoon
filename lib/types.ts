@@ -75,7 +75,7 @@ export type ClientPlayer = {
 };
 
 export type ClientRoomMessage = {
-    sentAt: string;
+    sent_at: string;
     sender: string;
     content: string;
     type: string;

@@ -105,12 +105,17 @@ export async function startGame(roomCode: string, _: ActionState): Promise<Actio
     }
 }
 
-export async function sendMessage(formData: FormData, _: ActionState): Promise<ActionState> {
+export async function sendMessage(_: ActionState, formData: FormData): Promise<ActionState> {
     try {
-        const roomCode = formData.get("room-code")?.toString();
+        const supabase = await createAdminClient();
         const message = formData.get("player-message")?.toString();
-        const name = formData.get("player-name")?.toString();
-        console.log(roomCode, message, name);
+        if(!message) {
+            return { success: false };
+        }
+        const sendResult = await supabase.rpc("send_player_message", { message: message });
+        if(sendResult.error) {
+            throw new Error(JSON.stringify(sendResult.error));
+        }
         return { success: true };
     } catch(e) {
         logError(ErrorStatus.MessageSend, e);

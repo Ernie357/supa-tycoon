@@ -21,13 +21,9 @@ function stripId(player: WithId): ClientPlayer  {
 export default async function RoomPage({ params }: { params: Promise<{ roomCode: string }> }) {
     const roomCode = (await params).roomCode;
     const supabase = await createAdminClient();
-    const initPlayers = await supabase.from("players").select(`${SelectAll.Players}, id, is_host`).eq("room_code", roomCode);
-    if(initPlayers.error) {
-        logError(ErrorStatus.PGSelect, initPlayers.error.details);
-        redirect('room-error');
-    }
-    if(!initPlayers.data || !roomCode) {
-        logError(ErrorStatus.RoomConnection, "No pg player data / no roomCode on page load.");
+    const initDatabaseState = await supabase.rpc("get_room_data", { room_code_param: roomCode });
+    if(initDatabaseState.error) {
+        logError(ErrorStatus.PGSelect, JSON.stringify(initDatabaseState.error));
         redirect('room-error');
     }
     const playerId = await checkCookies('playerId');
@@ -35,27 +31,28 @@ export default async function RoomPage({ params }: { params: Promise<{ roomCode:
         logError(ErrorStatus.RoomConnection, "No playerId cookie on page load.");
         redirect('room-error');
     }
-    const initPlayer = initPlayers.data.find(p => p.id === playerId);
-    if(!initPlayer) {
-        console.log('no init player on page load.');
+    const players: ClientPlayer[] = initDatabaseState.data.players;
+    const player = players.find((p: any) => p.id === playerId);
+    const hostPlayer = players.find((p: any) => p.is_host === true);
+    if(!player || !hostPlayer) {
+        logError(ErrorStatus.RoomConnection, "Could not find host or player.");
         redirect('room-error');
     }
-    const player = stripId(initPlayer);
     const initState: RoomState = {
-    roomCode: roomCode,
-    roomHost: stripId(initPlayers.data.find(p => p.is_host)!),
-    players: initPlayers.data.map(p => stripId(p)),
-    messages: [],
-    player: player
-};
+        roomCode: roomCode,
+        roomHost: hostPlayer,
+        players: players,
+        messages: initDatabaseState.data.messages ? initDatabaseState.data.messages : [],
+        player: player
+    };
 
     return (
         <RoomContextProvider roomCode={roomCode} init={initState}>
             <p className="text-2xl">Welcome to room {roomCode}</p>
             <LeaveRoom />
             <PlayerList />
-            { player.is_host && <DisbandRoomButton /> }
-            { player.is_host && <StartGameButton /> }
+            {/* { player.is_host && <DisbandRoomButton /> }
+            { player.is_host && <StartGameButton /> } */}
             <ChatPanel />
         </RoomContextProvider>
     );
