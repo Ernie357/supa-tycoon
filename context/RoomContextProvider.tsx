@@ -36,7 +36,7 @@ export default function RoomContextProvider({ children, roomCode, init, player }
             'postgres_changes', 
             { event: 'INSERT', schema: 'public', table: 'players', filter: `room_code=eq.${roomCode}` },
             (payload) => {
-                console.log(payload);
+                console.log('player add: ' + JSON.stringify(payload));
                 const newPlayer = payload.new as ClientPlayer;
                 setRoomState(prev => {
                     return { ...prev, players: [...prev.players, newPlayer] };
@@ -47,7 +47,7 @@ export default function RoomContextProvider({ children, roomCode, init, player }
             'postgres_changes',
             { event: 'DELETE', schema: 'public', table: 'players', filter: `room_code=eq.${roomCode}` },
             (payload) => {
-                console.log(payload);
+                console.log('player delete: ' + JSON.stringify(payload));
                 const deletedPlayerId = payload.old.public_id as string;
                 setRoomState(prev => {
                     return { 

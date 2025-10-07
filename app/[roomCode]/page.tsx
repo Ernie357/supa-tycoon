@@ -1,6 +1,7 @@
 import DisbandRoomButton from "@/components/room/DisbandRoomButton";
 import LeaveRoom from "@/components/room/LeaveRoom";
 import PlayerList from "@/components/room/PlayerList";
+import StartGameButton from "@/components/room/StartGameButton";
 import RoomContextProvider from "@/context/RoomContextProvider";
 import { checkCookies } from "@/lib/actionOps";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -52,6 +53,7 @@ export default async function RoomPage({ params }: { params: Promise<{ roomCode:
             <LeaveRoom />
             <PlayerList />
             { player.is_host && <DisbandRoomButton /> }
+            { player.is_host && <StartGameButton /> }
         </RoomContextProvider>
     );
 }

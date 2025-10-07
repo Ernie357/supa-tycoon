@@ -115,7 +115,6 @@ export async function handleInitPlayerConnection(
                 throw new Error();
             }
         } else {
-            console.log('upserting!');
             const playerInsertResult = await supabaseUpsert("players", { ...playerToInsert, id: existingCookie });
             if(!playerInsertResult.success) {
                 throw new Error();

@@ -12,7 +12,7 @@ export default function LeaveRoom() {
                 type="submit"
                 disabled={isPending}
             >
-                Leave Room
+                {isPending ? 'Leaving...' : 'Leave Room'}
             </button>
             {!state.success && state.message && <p>{state.message}</p>}
         </form>

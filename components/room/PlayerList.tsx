@@ -17,7 +17,8 @@ export default function PlayerList() {
                     />
                     <li>Name: {player.name}</li>
                     <li>Rank: {player.rank}</li>
-                    <li>Score {player.score}</li>
+                    <li>Score: {player.score}</li>
+                    <li>Is Host: {String(player.is_host)}</li>
                 </ul>
             </div>
         );

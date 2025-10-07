@@ -64,8 +64,6 @@ export async function joinRoom(_: ActionState, formData: FormData): Promise<Acti
     redirect(`/${roomCode}`);
 }
 
-// todo: add security to check if a host is doing it
-// ideally a supabase function that checks and deletes to avoid more calls
 export async function disbandRoom(roomCode: string, _: ActionState): Promise<ActionState> {
     try {
         const playerId = await checkCookies("playerId");
@@ -96,6 +94,15 @@ export async function removePlayerFromRoom(_: ActionState): Promise<ActionState>
         return { success: false, message: ClientError.RoomLeave };
     }
     redirect("/");
+}
+
+export async function startGame(roomCode: string, _: ActionState): Promise<ActionState> {
+    try {
+        return { success: true };
+    } catch(e) {
+        logError(ErrorStatus.GameStart, e);
+        return { success: false, message: ClientError.GameStart };
+    }
 }
 
 export async function checkCookie() {
