@@ -8,7 +8,7 @@ export async function middleware(request: NextRequest) {
     const pathname = request.nextUrl.pathname;
     if(pathname.match(/^\/[a-zA-Z0-9]{8}$/)) { // room code
         const roomCode = pathname.replace('/', '');
-        const supabase = createAdminClient();
+        const supabase = await  createAdminClient();
         const matchingRooms = await supabase.from("rooms").select("*").eq("code", roomCode);
         if(!matchingRooms.data || matchingRooms.data.length === 0) {
             url.pathname = `/room-error/not-found/${roomCode}`;
@@ -29,7 +29,7 @@ export async function middleware(request: NextRequest) {
     }
     if(pathname.match(/^\/join\-room\/[a-zA-Z0-9]{8}$/)) {
         const roomCode = pathname.replaceAll('/', '').replace('join-room', '');
-        const supabase = createAdminClient();
+        const supabase = await createAdminClient();
         const matchingRooms = await supabase.from("rooms").select("*").eq("code", roomCode);
         if(!matchingRooms.data || matchingRooms.data.length === 0) {
             url.pathname = `/room-error/not-found/${roomCode}`;

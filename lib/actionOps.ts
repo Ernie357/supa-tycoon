@@ -42,7 +42,7 @@ export async function supabaseUpsert<K extends keyof DatabaseTables>(
 ): Promise<ActionSuccess<DatabaseTables[K]["Insert"]> | StructuredError>
 {
     try {
-        const supabase = createAdminClient();
+        const supabase = await createAdminClient();
         const roomResult = await supabase.from(tableName).upsert(data, { onConflict: 'id' });
         if(roomResult.error) {
             throw new Error(JSON.stringify(roomResult.error));
@@ -60,7 +60,7 @@ export async function supabaseInsert<K extends keyof DatabaseTables>(
 ): Promise<ActionSuccess<DatabaseTables[K]["Insert"]> | StructuredError>
 {
     try {
-        const supabase = createAdminClient();
+        const supabase = await createAdminClient();
         const roomResult = await supabase.from(tableName).insert(data);
         if(roomResult.error) {
             throw new Error(JSON.stringify(roomResult.error));
@@ -75,7 +75,7 @@ export async function supabaseInsert<K extends keyof DatabaseTables>(
 // type DeleteReturn = Promise<ActionSuccess | StructuredError<{errorCode: string}>>;
 // export async function supabaseDelete<T = DatabaseTables>(tableName: string, data: T): DeleteReturn {
 //     try {
-//         const supabase = createAdminClient();
+//         const supabase = await createAdminClient();
 //         const deleteResult = await supabase.from(tableName).delete()
 //     } catch(e) {
 //         if(!(e instanceof PostgrestError)) {

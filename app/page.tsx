@@ -4,7 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import Link from "next/link";
 
 export default async function LandingPage() {
-	const supabase = createAdminClient();
+	const supabase = await createAdminClient();
 	const rooms = (await supabase.from("rooms").select('*').eq("is_public", true));
 
 	return (

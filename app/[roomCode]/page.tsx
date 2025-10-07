@@ -18,7 +18,7 @@ function stripId(player: WithId): ClientPlayer  {
 
 export default async function RoomPage({ params }: { params: Promise<{ roomCode: string }> }) {
     const roomCode = (await params).roomCode;
-    const supabase = createAdminClient();
+    const supabase = await createAdminClient();
     const initPlayers = await supabase.from("players").select(`${SelectAll.Players}, id, is_host`).eq("room_code", roomCode);
     if(initPlayers.error) {
         logError(ErrorStatus.PGSelect, initPlayers.error.details);

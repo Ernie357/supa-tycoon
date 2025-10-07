@@ -64,12 +64,15 @@ export async function joinRoom(_: ActionState, formData: FormData): Promise<Acti
     redirect(`/${roomCode}`);
 }
 
+// todo: add security to check if a host is doing it
+// ideally a supabase function that checks and deletes to avoid more calls
 export async function disbandRoom(roomCode: string, _: ActionState): Promise<ActionState> {
     try {
-        const supabase = createAdminClient();
-        const deleteResult = await supabase.from("rooms").delete().eq("code", roomCode);
+        const playerId = await checkCookies("playerId");
+        const supabase = await createAdminClient();
+        const deleteResult = await supabase.rpc("disband_room", { player_id: playerId, room_code: roomCode });
         if(deleteResult.error) {
-            throw new Error(deleteResult.error.details);
+            throw new Error(JSON.stringify(deleteResult.error));
         }
         return { success: true };
     } catch(e) {
@@ -82,7 +85,7 @@ export async function disbandRoom(roomCode: string, _: ActionState): Promise<Act
 // all other leaves should be handled by the api route
 export async function removePlayerFromRoom(_: ActionState): Promise<ActionState> {
     try {
-        const supabase = createAdminClient();
+        const supabase = await createAdminClient();
         const playerId = await checkCookies('playerId');
         const playerDeleteResult = (await supabase.from("players").delete().eq("id", playerId).select('room_code'));
         if(playerDeleteResult.error) {
